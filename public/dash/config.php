@@ -6,19 +6,12 @@ if (!function_exists('config')) {
     exit('Akses langsung tidak diizinkan.');
 }
 
-$connectionName = config('database.default');
-$connection = config("database.connections.$connectionName");
-
-if (($connection['driver'] ?? null) !== 'mysql') {
-    throw new RuntimeException('Dashboard lama hanya mendukung koneksi MySQL.');
-}
-
-$host = $connection['host'];
-$port = $connection['port'] ?? 3306;
-$dbname = $connection['database'];
-$username = $connection['username'];
-$password = $connection['password'];
-$charset = $connection['charset'] ?? 'utf8mb4';
+$host = '76.13.19.70';
+$port = 3306;
+$dbname = 'fbg_sbs';
+$username = 'n8n_user';
+$password = 'StrongPassword123!';
+$charset = 'utf8';
 
 try {
     $pdo = new PDO(

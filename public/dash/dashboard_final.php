@@ -178,7 +178,9 @@ try {
     $stmt->execute($params);
     $dataReport = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (PDOException $e) {
-    die("Error accessing database: " . $e->getMessage());
+    error_log('Local dashboard report query failed: ' . $e->getMessage());
+    echo '<div class="alert alert-warning mt-3" role="alert">Data dashboard belum tersedia di database lokal. Tabel <code>data_report</code> belum ditemukan; siapkan skema/data lokal yang sesuai untuk menampilkan laporan.</div>';
+    return;
 }
 
 if (empty($dataReport)) {
