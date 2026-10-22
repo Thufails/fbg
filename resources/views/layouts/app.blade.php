@@ -924,8 +924,38 @@
             
             // Close sidebar when clicking on menu items in mobile
             const menuLinks = document.querySelectorAll('.sidebar-menu a');
+            const sidebarMenu = document.querySelector('.sidebar-menu');
+            const sidebarScrollKey = 'fbg-sidebar-scroll-top';
+
+            // Restore the menu position after a normal page navigation.
+            if (sidebarMenu) {
+                try {
+                    const savedScrollTop = Number(sessionStorage.getItem(sidebarScrollKey));
+                    sessionStorage.removeItem(sidebarScrollKey);
+                    if (Number.isFinite(savedScrollTop) && savedScrollTop >= 0) {
+                        requestAnimationFrame(function() {
+                            sidebarMenu.scrollTop = savedScrollTop;
+                        });
+                    }
+                } catch (error) {
+                    // Keep navigation working if browser storage is unavailable.
+                }
+            }
+
             menuLinks.forEach(link => {
-                link.addEventListener('click', function() {
+                link.addEventListener('click', function(event) {
+                    // Save only same-tab, same-site navigations (not Ctrl/Cmd-clicks or new tabs).
+                    if (event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey && (!link.target || link.target === '_self')) {
+                        try {
+                            const destination = new URL(link.href, window.location.href);
+                            if (destination.origin === window.location.origin) {
+                                sessionStorage.setItem(sidebarScrollKey, String(sidebarMenu ? sidebarMenu.scrollTop : 0));
+                            }
+                        } catch (error) {
+                            // Keep navigation working if URL parsing or browser storage fails.
+                        }
+                    }
+
                     if (window.innerWidth <= 991) {
                         sidebar.classList.remove('mobile-open');
                         sidebarOverlay.classList.remove('active');
