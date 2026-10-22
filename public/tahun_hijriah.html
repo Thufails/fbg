@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalender Hijriah Resmi - SBS Monitoring System</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
+    <style>
+        :root {
+            --hijri-color: #2ecc71;
+            --gregorian-color: #e74c3c;
+            --light-bg: #f8f9fa;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .calendar-container {
+            background: white;
+            border-radius: 15px;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 1rem;
+        }
+        
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .nav-btn {
+            background: var(--hijri-color);
+            color: white;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .nav-btn:hover {
+            background: #27ae60;
+            transform: scale(1.1);
+        }
+        
+        .nav-btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .month-title {
+            text-align: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--hijri-color);
+            margin: 0;
+        }
+        
+        .days-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+        
+        .day-header {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.7rem;
+            color: var(--hijri-color);
+            padding: 0.4rem 0;
+            background-color: rgba(46, 204, 113, 0.1);
+            border-radius: 6px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+        
+        .day-cell {
+            background: rgba(46, 204, 113, 0.05);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            padding: 0.5rem 0.3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            min-height: 65px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        
+        .day-cell:hover {
+            border-color: var(--hijri-color);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .day-cell.today {
+            border-color: var(--hijri-color);
+            background: rgba(46, 204, 113, 0.15);
+        }
+        
+        .day-cell.holiday {
+            background: rgba(255, 193, 7, 0.15);
+            border-color: #ffc107;
+        }
+        
+        .hijri-date {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: var(--hijri-color);
+            margin-bottom: 0.2rem;
+        }
+        
+        .gregorian-date {
+            font-size: 0.65rem;
+            color: var(--gregorian-color);
+            background: rgba(231, 76, 60, 0.1);
+            padding: 0.15rem 0.3rem;
+            border-radius: 3px;
+            font-weight: 500;
+        }
+        
+        .hijri-day-name {
+            font-size: 0.6rem;
+            color: #666;
+            margin-top: 0.2rem;
+            font-weight: 500;
+        }
+        
+        .holiday-indicator {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 6px;
+            height: 6px;
+            background: #ffc107;
+            border-radius: 50%;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--hijri-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .current-date-info {
+            background: linear-gradient(135deg, var(--hijri-color), #27ae60);
+            color: white;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .current-hijri {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+        
+        .current-gregorian {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+        
+        .empty-cell {
+            background: transparent;
+            border: 1px dashed #e0e0e0;
+            border-radius: 8px;
+            min-height: 65px;
+        }
+        
+        .api-info {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+            
+            .calendar-container {
+                padding: 0.8rem;
+            }
+            
+            .day-cell {
+                padding: 0.4rem 0.2rem;
+                min-height: 60px;
+            }
+            
+            .hijri-date {
+                font-size: 0.8rem;
+            }
+            
+            .gregorian-date {
+                font-size: 0.6rem;
+            }
+            
+            .hijri-day-name {
+                font-size: 0.55rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="calendar-container">
+        <!-- Header dengan Navigasi -->
+        <div class="calendar-header">
+            <button class="nav-btn" id="prevMonth" onclick="changeMonth(-1)">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            
+            <h2 class="month-title" id="monthTitle">Memuat...</h2>
+            
+            <button class="nav-btn" id="nextMonth" onclick="changeMonth(1)">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+            <p class="text-muted" style="font-size: 0.9rem;">Memuat kalender Hijriah dari Aladhan.com...</p>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage" style="display: none;">
+            Gagal memuat data dari API. Menggunakan data fallback.
+        </div>
+
+        <!-- Kalender -->
+        <div id="calendarContent" style="display: none;">
+            <!-- Header Hari -->
+            <div class="days-header">
+                <div class="day-header">Ahd</div>
+                <div class="day-header">Isn</div>
+                <div class="day-header">Sel</div>
+                <div class="day-header">Rab</div>
+                <div class="day-header">Kam</div>
+                <div class="day-header">Jum</div>
+                <div class="day-header">Sab</div>
+            </div>
+
+            <!-- Grid Kalender -->
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Day cells will be generated here -->
+            </div>
+
+            <!-- Info Tanggal Saat Ini -->
+            <div class="current-date-info">
+                <div class="current-hijri" id="currentHijriDate">-</div>
+                <div class="current-gregorian" id="currentGregorianDate">-</div>
+            </div>
+
+            <!-- Info API -->
+            <div class="api-info">
+                <i class="bi bi-check-circle me-1"></i>
+                Data dari Aladhan.com - Islamic Calendar API
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // Data bulan Hijriah
+        const hijriMonths = [
+            'Muharram', 'Safar', 'Rabiul Awal', 'Rabiul Akhir',
+            'Jumadil Awal', 'Jumadil Akhir', 'Rajab', 'Sya\'ban',
+            'Ramadan', 'Syawal', 'Dzulqa\'dah', 'Dzulhijjah'
+        ];
+
+        const gregorianMonthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
+
+        // Nama hari
+        const hijriDayNames = ['Ahad', 'Isnin', 'Selasa', 'Arbaa', 'Khamis', 'Jumuah', 'Sabt'];
+
+        // Hari besar Islam
+        const islamicHolidays = {
+            1: { // Muharram
+                1: 'Tahun Baru Hijriyah',
+                10: 'Hari Asyura'
+            },
+            3: { // Rabiul Awal
+                12: 'Maulid Nabi Muhammad SAW'
+            },
+            7: { // Rajab
+                27: 'Isra Mi\'raj'
+            },
+            9: { // Ramadan
+                1: 'Awal Puasa Ramadan',
+                27: 'Nuzulul Qur\'an'
+            },
+            10: { // Syawal
+                1: 'Hari Raya Idul Fitri',
+                2: 'Hari Raya Idul Fitri',
+                3: 'Hari Raya Idul Fitri'
+            },
+            12: { // Dzulhijjah
+                9: 'Wukuf di Arafah',
+                10: 'Hari Raya Idul Adha',
+                11: 'Hari Tasyrik',
+                12: 'Hari Tasyrik',
+                13: 'Hari Tasyrik'
+            }
+        };
+
+        // Variabel state
+        let currentHijriMonth = 7; // Sya'ban sebagai default
+        let currentHijriYear = 1446;
+        let currentDateData = null;
+
+        // Inisialisasi
+        document.addEventListener('DOMContentLoaded', function() {
+            loadCurrentDate();
+        });
+
+        // Fungsi untuk memuat tanggal saat ini
+        async function loadCurrentDate() {
+            showLoading(true);
+            hideError();
+            
+            try {
+                // Dapatkan tanggal saat ini dari API Aladhan
+                const today = new Date();
+                const day = today.getDate();
+                const month = today.getMonth() + 1;
+                const year = today.getFullYear();
+                
+                const response = await fetch(`https://api.aladhan.com/v1/gToH/${day}-${month}-${year}`);
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    currentDateData = data.data;
+                    const hijriDate = data.data.hijri;
+                    
+                    // Set bulan dan tahun saat ini
+                    currentHijriMonth = hijriMonths.indexOf(hijriDate.month.en);
+                    currentHijriYear = parseInt(hijriDate.year);
+                    
+                    // Generate kalender untuk bulan ini
+                    await generateCalendarFromAPI();
+                    updateCurrentDateDisplay();
+                    
+                } else {
+                    throw new Error('Data tidak valid dari API');
+                }
+                
+            } catch (error) {
+                console.error('Error loading current date:', error);
+                showError();
+                useFallbackData();
+            }
+            
+            showLoading(false);
+        }
+
+        // Fungsi untuk generate kalender dari API
+        async function generateCalendarFromAPI() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            // Update judul bulan
+            document.getElementById('monthTitle').textContent = 
+                `${hijriMonths[currentHijriMonth]} ${currentHijriYear} H`;
+            
+            try {
+                // Generate 30 hari untuk bulan Hijriah
+                const daysInMonth = 30;
+                let firstDaySet = false;
+                let firstDayOfWeek = 0;
+                
+                for (let hijriDay = 1; hijriDay <= daysInMonth; hijriDay++) {
+                    const dayCell = document.createElement('div');
+                    dayCell.className = 'day-cell';
+                    
+                    // Hitung tanggal Gregorian untuk hari ini
+                    const gregorianDate = await getGregorianDate(hijriDay, currentHijriMonth + 1, currentHijriYear);
+                    
+                    if (!firstDaySet && gregorianDate) {
+                        firstDayOfWeek = new Date(gregorianDate.year, gregorianDate.month - 1, gregorianDate.day).getDay();
+                        firstDaySet = true;
+                    }
+                    
+                    // Cek apakah hari ini
+                    const today = new Date();
+                    const isToday = gregorianDate && 
+                                   today.getDate() === gregorianDate.day && 
+                                   today.getMonth() + 1 === gregorianDate.month &&
+                                   today.getFullYear() === gregorianDate.year;
+                    
+                    // Cek apakah hari libur Islam
+                    const isHoliday = checkIfHoliday(currentHijriMonth + 1, hijriDay);
+                    
+                    if (isToday) {
+                        dayCell.classList.add('today');
+                    }
+                    if (isHoliday) {
+                        dayCell.classList.add('holiday');
+                    }
+                    
+                    // Format tampilan
+                    const gregorianDisplay = gregorianDate ? 
+                        `${gregorianDate.day} ${gregorianMonthsShort[gregorianDate.month - 1]}` : 
+                        '...';
+                    
+                    // Hari dalam minggu
+                    const dayOfWeek = firstDaySet ? (firstDayOfWeek + hijriDay - 1) % 7 : (hijriDay - 1) % 7;
+                    
+                    let cellContent = `
+                        <div class="hijri-date">${hijriDay}</div>
+                        <div class="gregorian-date">${gregorianDisplay}</div>
+                        <div class="hijri-day-name">${hijriDayNames[dayOfWeek]}</div>
+                    `;
+                    
+                    if (isHoliday) {
+                        cellContent += '<div class="holiday-indicator"></div>';
+                    }
+                    
+                    dayCell.innerHTML = cellContent;
+                    
+                    // Tambah event click
+                    if (gregorianDate) {
+                        dayCell.onclick = () => showDateDetails(hijriDay, gregorianDate);
+                    }
+                    
+                    calendarGrid.appendChild(dayCell);
+                }
+                
+                // Tambah empty cells di awal jika perlu
+                if (firstDaySet && firstDayOfWeek > 0) {
+                    const emptyCells = [];
+                    for (let i = 0; i < firstDayOfWeek; i++) {
+                        const emptyCell = document.createElement('div');
+                        emptyCell.className = 'empty-cell';
+                        emptyCells.unshift(emptyCell);
+                    }
+                    emptyCells.forEach(cell => calendarGrid.insertBefore(cell, calendarGrid.firstChild));
+                }
+                
+            } catch (error) {
+                console.error('Error generating calendar:', error);
+                generateCalendarFallback();
+            }
+            
+            updateNavigationButtons();
+        }
+
+        // Fungsi untuk mendapatkan tanggal Gregorian dari Hijriah
+        async function getGregorianDate(hijriDay, hijriMonth, hijriYear) {
+            try {
+                // Gunakan API untuk konversi tanggal
+                const response = await fetch(`https://api.aladhan.com/v1/hToG/${hijriDay}-${hijriMonth}-${hijriYear}`);
+                const data = await response.json();
+                
+                if (data.code === 200) {
+                    const gregorian = data.data.gregorian;
+                    return {
+                        day: parseInt(gregorian.day),
+                        month: parseInt(gregorian.month.number),
+                        year: parseInt(gregorian.year),
+                        date: gregorian.date
+                    };
+                }
+            } catch (error) {
+                console.error('Error getting Gregorian date:', error);
+            }
+            
+            // Fallback calculation
+            return calculateGregorianFallback(hijriDay, hijriMonth, hijriYear);
+        }
+
+        // Fallback calculation untuk tanggal Gregorian
+        function calculateGregorianFallback(hijriDay, hijriMonth, hijriYear) {
+            // Perhitungan sederhana - ini hanya estimasi
+            const baseHijri = { day: 1, month: 1, year: 1446 };
+            const baseGregorian = { day: 19, month: 8, year: 2024 }; // 1 Muharram 1446 = 19 Agustus 2024
+            
+            const totalHijriDays = (hijriYear - baseHijri.year) * 354 + (hijriMonth - baseHijri.month) * 29.5 + (hijriDay - baseHijri.day);
+            const totalGregorianDays = Math.round(totalHijriDays * 1.03068);
+            
+            const resultDate = new Date(baseGregorian.year, baseGregorian.month - 1, baseGregorian.day);
+            resultDate.setDate(resultDate.getDate() + totalGregorianDays);
+            
+            return {
+                day: resultDate.getDate(),
+                month: resultDate.getMonth() + 1,
+                year: resultDate.getFullYear(),
+                date: resultDate.toISOString().split('T')[0]
+            };
+        }
+
+        // Fungsi untuk mengecek hari libur Islam
+        function checkIfHoliday(hijriMonth, hijriDay) {
+            return islamicHolidays[hijriMonth] && islamicHolidays[hijriMonth][hijriDay];
+        }
+
+        // Fungsi fallback kalender
+        function generateCalendarFallback() {
+            const calendarGrid = document.getElementById('calendarGrid');
+            calendarGrid.innerHTML = '';
+            
+            document.getElementById('monthTitle').textContent = 
+                `${hijriMonths[currentHijriMonth]} ${currentHijriYear} H (Estimasi)`;
+            
+            const daysInMonth = 30;
+            const firstDay = 0;
+            
+            for (let i = 0; i < firstDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'empty-cell';
+                calendarGrid.appendChild(emptyCell);
+            }
+            
+            for (let hijriDay = 1; hijriDay <= daysInMonth; hijriDay++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+                
+                const isHoliday = checkIfHoliday(currentHijriMonth + 1, hijriDay);
+                const gregorianDate = calculateGregorianFallback(hijriDay, currentHijriMonth + 1, currentHijriYear);
+                const dayOfWeek = (firstDay + hijriDay - 1) % 7;
+                
+                if (isHoliday) {
+                    dayCell.classList.add('holiday');
+                }
+                
+                const gregorianDisplay = `${gregorianDate.day} ${gregorianMonthsShort[gregorianDate.month - 1]}`;
+                
+                let cellContent = `
+                    <div class="hijri-date">${hijriDay}</div>
+                    <div class="gregorian-date">${gregorianDisplay}</div>
+                    <div class="hijri-day-name">${hijriDayNames[dayOfWeek]}</div>
+                `;
+                
+                if (isHoliday) {
+                    cellContent += '<div class="holiday-indicator"></div>';
+                }
+                
+                dayCell.innerHTML = cellContent;
+                dayCell.onclick = () => showDateDetails(hijriDay, gregorianDate);
+                
+                calendarGrid.appendChild(dayCell);
+            }
+            
+            updateNavigationButtons();
+        }
+
+        // Fungsi untuk mengubah bulan
+        async function changeMonth(direction) {
+            currentHijriMonth += direction;
+            
+            if (currentHijriMonth < 0) {
+                currentHijriMonth = 11;
+                currentHijriYear--;
+            } else if (currentHijriMonth > 11) {
+                currentHijriMonth = 0;
+                currentHijriYear++;
+            }
+            
+            showLoading(true);
+            hideError();
+            
+            try {
+                await generateCalendarFromAPI();
+            } catch (error) {
+                console.error('Error changing month:', error);
+                showError();
+                generateCalendarFallback();
+            }
+            
+            showLoading(false);
+        }
+
+        // Fungsi untuk update tombol navigasi
+        function updateNavigationButtons() {
+            document.getElementById('prevMonth').disabled = false;
+            document.getElementById('nextMonth').disabled = false;
+        }
+
+        // Fungsi untuk menampilkan detail tanggal
+        function showDateDetails(hijriDay, gregorianDate) {
+            const hijriMonthName = hijriMonths[currentHijriMonth];
+            const dayOfWeek = (hijriDay - 1) % 7;
+            const hijriDayName = hijriDayNames[dayOfWeek];
+            const isHoliday = checkIfHoliday(currentHijriMonth + 1, hijriDay);
+            
+            let message = `📅 ${hijriDayName}, ${hijriDay} ${hijriMonthName} ${currentHijriYear} H\n`;
+            message += `📆 ${gregorianDate.day} ${gregorianMonthsShort[gregorianDate.month - 1]} ${gregorianDate.year}\n`;
+            
+            if (isHoliday) {
+                const holidayName = islamicHolidays[currentHijriMonth + 1][hijriDay];
+                message += `🎉 ${holidayName}`;
+            }
+            
+            alert(message);
+        }
+
+        // Fungsi untuk update tampilan tanggal saat ini
+        function updateCurrentDateDisplay() {
+            if (currentDateData) {
+                const hijri = currentDateData.hijri;
+                const gregorian = currentDateData.gregorian;
+                
+                document.getElementById('currentHijriDate').textContent = 
+                    `${hijri.day} ${hijri.month.en} ${hijri.year} H`;
+                document.getElementById('currentGregorianDate').textContent = 
+                    `${gregorian.day} ${gregorian.month.en} ${gregorian.year}`;
+            }
+        }
+
+        // Fallback data
+        function useFallbackData() {
+            const today = new Date();
+            currentHijriYear = 1446;
+            currentHijriMonth = 7; // Sya'ban
+            
+            generateCalendarFallback();
+            
+            document.getElementById('currentHijriDate').textContent = 
+                `1 ${hijriMonths[currentHijriMonth]} ${currentHijriYear} H`;
+            document.getElementById('currentGregorianDate').textContent = 
+                today.toLocaleDateString('id-ID', { 
+                    day: 'numeric', 
+                    month: 'long', 
+                    year: 'numeric' 
+                });
+        }
+
+        // Fungsi untuk menampilkan/menyembunyikan loading
+        function showLoading(show) {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const calendarContent = document.getElementById('calendarContent');
+            
+            if (show) {
+                loadingSpinner.style.display = 'block';
+                calendarContent.style.display = 'none';
+            } else {
+                loadingSpinner.style.display = 'none';
+                calendarContent.style.display = 'block';
+            }
+        }
+
+        function showError() {
+            document.getElementById('errorMessage').style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+    </script>
+</body>
+</html>
