@@ -104,10 +104,17 @@
             width: 100%;
         }
         
+        .table-scroll {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 30px;
+        }
+
         .data-table {
+            min-width: 760px;
             width: 100%;
             border-collapse: collapse;
-            margin-top: 30px;
             background: white;
             border-radius: 12px;
             overflow: hidden;
@@ -249,6 +256,7 @@
             </div>
         </div>
         
+        <div class="table-scroll" role="region" aria-label="Tabel target dan realisasi pemasaran" tabindex="0">
         <table class="data-table">
             <thead>
                 <tr>
@@ -292,6 +300,7 @@
                 </tr>
             </tbody>
         </table>
+        </div>
         
         <footer>
             <p>© {{ date('Y') }} Dashboard Target dan Realisasi | Dibuat dengan Chart.js</p>

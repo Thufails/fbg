@@ -84,6 +84,35 @@
             align-items: center;
             gap: 10px;
         }
+
+        .user-dropdown {
+            position: relative;
+        }
+
+        .user-menu-trigger {
+            cursor: pointer;
+            list-style: none;
+            padding: 5px 8px;
+            border-radius: 8px;
+        }
+
+        .user-menu-trigger::-webkit-details-marker {
+            display: none;
+        }
+
+        .user-menu-trigger:hover,
+        .user-dropdown[open] .user-menu-trigger {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .dropdown-chevron {
+            color: rgba(255, 255, 255, 0.9);
+            transition: transform 0.2s ease;
+        }
+
+        .user-dropdown[open] .dropdown-chevron {
+            transform: rotate(180deg);
+        }
         
         .user-avatar {
             width: 40px;
@@ -116,23 +145,51 @@
         }
         
         .user-actions {
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            z-index: 1100;
             display: flex;
-            align-items: center;
-            gap: 10px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 2px;
+            min-width: 180px;
+            padding: 6px;
+            background: #fff;
+            border: 1px solid rgba(15, 23, 42, 0.1);
+            border-radius: 10px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.2);
+        }
+
+        .user-dropdown[open] > .user-actions {
+            display: flex !important;
         }
         
         .user-actions a {
-            color: rgba(255, 255, 255, 0.9);
+            color: #334155 !important;
             text-decoration: none;
             transition: color 0.2s ease;
             display: flex;
             align-items: center;
-            gap: 5px;
-            font-size: 0.85rem;
+            gap: 9px;
+            padding: 9px 10px;
+            border-radius: 7px;
+            font-size: 0.9rem;
+            opacity: 1;
+            visibility: visible;
+            white-space: nowrap;
+        }
+
+        .user-actions a span,
+        .user-actions a i {
+            color: #334155 !important;
+            opacity: 1;
+            visibility: visible;
         }
         
         .user-actions a:hover {
-            color: white;
+            color: #3730a3;
+            background: #eef2ff;
         }
         
         .login-btn {
@@ -584,6 +641,10 @@
             .user-actions a span {
                 display: none;
             }
+
+            .user-dropdown .user-actions a span {
+                display: inline;
+            }
             
             .login-btn span {
                 display: none;
@@ -834,7 +895,8 @@
         <!-- User Profile di Kanan -->
         <div class="user-section">
             @if(Auth::check())
-                <div class="user-info">
+                <details class="user-dropdown">
+                <summary class="user-info user-menu-trigger" aria-label="Buka menu akun">
                     <div class="user-avatar">
                         <i class="bi bi-person-circle"></i>
                     </div>
@@ -842,7 +904,8 @@
                         <div class="user-name">{{ Auth::user()->name }}</div>
                         <div class="user-role">{{ Auth::user()->level }}</div>
                     </div>
-                </div>
+                    <i class="bi bi-chevron-down dropdown-chevron" aria-hidden="true"></i>
+                </summary>
                 <div class="user-actions">
                     <a href="{{ route('user.updateData') }}">
                         <i class="bi bi-pencil-square"></i>
@@ -853,6 +916,7 @@
                         <span>Logout</span>
                     </a>
                 </div>
+                </details>
             @else
                 <a href="{{ route('login') }}" class="login-btn">
                     <i class="bi bi-box-arrow-in-right"></i>
