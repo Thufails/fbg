@@ -25,13 +25,21 @@ if ($kd_laporan) {
     }
 }
 
-// Jika tidak ada kd_laporan atau data tidak ditemukan, coba ambil dari URL parameter
-if (empty($tanggal_awal) && isset($_GET['tanggal_awal'])) {
-    $tanggal_awal = $_GET['tanggal_awal'];
-}
+// Tanggal dari filter manual harus mengalahkan periode laporan.
+// Kehadiran parameter (meskipun kosong) juga membedakan submit/reset dari kunjungan awal.
+$hasDateFilter = array_key_exists('tanggal_awal', $_GET)
+    || array_key_exists('tanggal_akhir', $_GET);
 
-if (empty($tanggal_akhir) && isset($_GET['tanggal_akhir'])) {
-    $tanggal_akhir = $_GET['tanggal_akhir'];
+if ($hasDateFilter) {
+    $tanggalAwalInput = trim((string) ($_GET['tanggal_awal'] ?? ''));
+    $tanggalAkhirInput = trim((string) ($_GET['tanggal_akhir'] ?? ''));
+    $tanggal_awal = $tanggalAwalInput !== '' ? $tanggalAwalInput : null;
+    $tanggal_akhir = $tanggalAkhirInput !== '' ? $tanggalAkhirInput : null;
+} elseif (empty($tanggal_awal) && empty($tanggal_akhir)) {
+    // Kunjungan pertama tanpa periode laporan: tampilkan bulan berjalan sampai hari ini (WIB).
+    $today = new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta'));
+    $tanggal_awal = $today->modify('first day of this month')->format('Y-m-d');
+    $tanggal_akhir = $today->format('Y-m-d');
 }
 
 // Format tanggal jika perlu
